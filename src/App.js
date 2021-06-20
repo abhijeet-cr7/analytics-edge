@@ -1,14 +1,18 @@
 import React, { useEffect, useState } from "react";
 import * as ReactBootstrap from "react-bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
-import Pagination from "./Pagination";
+import ReactPaginate from "react-paginate";
 
 function App() {
   const [searchTerm, setSearchTerm] = useState("");
   const [url, setUrl] = useState("posts");
   const [posts, setPosts] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [postsPerPage, setPostsPerPage] = useState(10);
+  const [users, setUsers] = useState(posts.slice(0, 10));
+  const [pageNumber, setPageNumber] = useState(0);
+  const usersPerpage = 10;
+  const pagesVisited = pageNumber * usersPerpage;
+
+  const displayPosts = posts.slice(pagesVisited, pagesVisited + usersPerpage);
   useEffect(() => {
     const urltext = `https://jsonplaceholder.typicode.com/${url}`;
     fetch(urltext)
@@ -33,10 +37,10 @@ function App() {
     columns = posts[0] && Object.keys(posts[0]);
   }
   // get current posts
-  const indexOfLastPost = currentPage * postsPerPage;
-  const indexOfFirstPost = indexOfLastPost - postsPerPage;
-  const currentPosts = posts.slice(indexOfFirstPost, indexOfLastPost);
-
+  const pageCount = Math.ceil(users.length / usersPerpage);
+  const changePage = ({ selected }) => {
+    setPageNumber(selected);
+  };
   return (
     <div className="App">
       <input
@@ -53,7 +57,7 @@ function App() {
       <table>
         <thead>
           <tr>
-            {currentPosts[0] &&
+            {displayPosts[0] &&
               columns.map((heading) => (
                 <th style={{ marginLeft: "100px", width: "100vw" }}>
                   {heading}
@@ -63,7 +67,7 @@ function App() {
         </thead>
       </table>
       {url === "posts" &&
-        currentPosts
+        displayPosts
           .filter((post) => {
             if (searchTerm === "") {
               return post;
@@ -96,7 +100,7 @@ function App() {
             );
           })}
       {url === "comments" &&
-        currentPosts
+        displayPosts
           .filter((post) => {
             if (searchTerm === "") {
               return post;
@@ -126,7 +130,7 @@ function App() {
             );
           })}
       {url === "users" &&
-        currentPosts
+        displayPosts
           .filter((post) => {
             if (searchTerm === "") {
               return post;
@@ -158,8 +162,12 @@ function App() {
               </>
             );
           })}
-
-      <Pagination postsPerPage={postsPerPage} totalPages={posts.length} />
+      <ReactPaginate
+        previousLabel={"Previous"}
+        nextLabel={"Next"}
+        pageCount={pageCount}
+        onPageChange={changePage}
+      />
     </div>
   );
 }
